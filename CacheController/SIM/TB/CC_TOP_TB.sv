@@ -1,14 +1,14 @@
-`define     IP_VER      32'h0001_2024
+`define     IP_VER          32'h0001_2024
 
-`define 	  TIMEOUT_DELAY 	500000
+`define     TIMEOUT_DELAY   500000
 
-`define     TEST_SIZE    32'h0000_0100
-`define     STRIDE       32'h1000_5000
+`define     TEST_SIZE       32'h0000_0100
+`define     STRIDE          32'h1000_5000
 
 `define     RANDOM_SEED     12123344
 `define     TEST_CNT        100
 
-`define		MEM_ADDR_WIDTH	16
+`define     MEM_ADDR_WIDTH	16
 
 module CC_TOP_TB ();
     
@@ -56,11 +56,11 @@ module CC_TOP_TB ();
         rst_n                   = 1'b1;     // release the resetß
     end
 
-	// timeout
-	initial begin
-		#`TIMEOUT_DELAY $display("Timeout!");
-		$finish;
-	end
+    // timeout
+    initial begin
+        #`TIMEOUT_DELAY $display("Timeout!");
+        $finish;
+    end
 
     // enable waveform dump
     initial begin
@@ -77,8 +77,8 @@ module CC_TOP_TB ();
     INCT_AXI_R_CH               inct_r_ch   (.clk(clk));
 
     MEM_AXI_AR_CH               #(.ADDR_WIDTH(`MEM_ADDR_WIDTH))
-								mem_ar_ch   (.clk(clk));
-	wire	[31:`MEM_ADDR_WIDTH]	unused_mem_araddr;
+                                mem_ar_ch   (.clk(clk));
+    wire    [31:`MEM_ADDR_WIDTH]    unused_mem_araddr;
     MEM_AXI_R_CH                mem_r_ch    (.clk(clk));
 
     CC_TOP  u_DUT (
@@ -142,9 +142,9 @@ module CC_TOP_TB ();
         .wdata_data_o           (wdata_data)
     );
 
-    AXI_SLAVE   				#(
-		.ADDR_WIDTH				(`MEM_ADDR_WIDTH)
-	) u_mem (
+    AXI_SLAVE                   #(
+        .ADDR_WIDTH             (`MEM_ADDR_WIDTH)
+    ) u_mem (
         .clk                    (clk),
         .rst_n                  (rst_n),
         .ar_ch                  (mem_ar_ch),
@@ -181,12 +181,12 @@ module CC_TOP_TB ();
         $display("---------------------------------------------------");
     endtask
 
-	// fill the memory with random data
-	task mem_fill();
-		for (int addr=0; addr<(1<<`MEM_ADDR_WIDTH); addr+=4) begin
-            u_mem.write_word(addr, $random);	// write 32b (4B) at a time
-		end
-	endtask
+    // fill the memory with random data
+    task mem_fill();
+        for (int addr=0; addr<(1<<`MEM_ADDR_WIDTH); addr+=4) begin
+            u_mem.write_word(addr, $random);    // write 32b (4B) at a time
+        end
+    endtask
 
     task automatic trans_init(int gen_repeat_cnt, int access_repeat_cnt);
         bit [16:0]  tag;
@@ -194,36 +194,36 @@ module CC_TOP_TB ();
         bit [5:0]   offset;
         bit [31:0]  addr, data_addr, hit_addr;
         bit [63:0]  answer;
-        bit [511:0]  data;
+        bit [511:0] data;
         int request_cnt;
         
         $display("Test start =========================================");
         
         request_cnt = 1;
         
-		// step 1: cache miss requests
+        // step 1: cache miss requests
         repeat(gen_repeat_cnt) begin 
             // 1. generate a random address within the range
-			addr = $random & {`MEM_ADDR_WIDTH{1'b1}};
-			addr[5:0] = 0;		// to simplify, addr starts at a begining of a block
-			tag = addr[`MEM_ADDR_WIDTH:15];
-			index = addr[14:6];
-			offset = addr[5:0];
+            addr = $random & {`MEM_ADDR_WIDTH{1'b1}};
+            addr[5:0] = 0;		// to simplify, addr starts at a begining of a block
+            tag = addr[`MEM_ADDR_WIDTH:15];
+            index = addr[14:6];
+            offset = addr[5:0];
 
-			// 2. push the address to the address queue
-			//    (later, the driver will drive to DUT)
+            // 2. push the address to the address queue
+            //    (later, the driver will drive to DUT)
             addr_queue.push_back(addr);
 
-			// 3. push the expected data to the data queue
-			//    (a request generates 8 64b data)
+            // 3. push the expected data to the data queue
+            //    (a request generates 8 64b data)
             for(int jdx = 0; jdx < 8; jdx++) begin 
                 data_addr = addr + ((offset + (jdx << 3)) & 6'b11_1111);
                 answer = {u_mem.read_word(data_addr + 4),u_mem.read_word(data_addr)};
                 data_queue.push_back(answer);
             end
 
-			// 4. push the address to hit_addr_queue to generate cache hit
-			// requests
+            // 4. push the address to hit_addr_queue to generate cache hit
+            // requests
             hit_addr_queue.push_back(addr);
 
             $write("%3dth trans || ", request_cnt ++); 
@@ -232,9 +232,9 @@ module CC_TOP_TB ();
             $write("offset : 0x%02h (%1dth word first)\n", offset, offset >> 3);
         end
 
-		// step 2: cache hit requests
+        // step 2: cache hit requests
         repeat(gen_repeat_cnt) begin 
-			// select one of the pre-requested addresses
+            // select one of the pre-requested addresses
             hit_addr = hit_addr_queue.pop_front();
             repeat(access_repeat_cnt / gen_repeat_cnt) begin
                 tag = hit_addr[`MEM_ADDR_WIDTH:15];
@@ -259,29 +259,29 @@ module CC_TOP_TB ();
 
     task drive_ar();
         bit [31:0] addr;
-		while (addr_queue.size()!=0) begin
-            addr = addr_queue.pop_front();	// pop a request from the queue
-            inct_ar_ch.request(addr);		// drive to DUT
+        while (addr_queue.size()!=0) begin
+            addr = addr_queue.pop_front();  // pop a request from the queue
+            inct_ar_ch.request(addr);       // drive to DUT
         end
     endtask
 
     task monitor_r();
         bit [63:0] data, answer;
-		int req_num = 0; 
+        int req_num = 0; 
         int burst_cur;
         bit last;
-		while (data_queue.size()!=0) begin
-			req_num++;
+        while (data_queue.size()!=0) begin
+            req_num++;
             last = 0;
             burst_cur = 0;
             while(!last) begin
-                inct_r_ch.receive(data, last);	// receive data from DUT
-                answer = data_queue.pop_front();	// pop expected data from the data_queue
-                if (answer != data) begin		// compare
+                inct_r_ch.receive(data, last);  // receive data from DUT
+                answer = data_queue.pop_front();    // pop expected data from the data_queue
+                if (answer != data) begin       // compare
                     $write("<< %5dth request [Incorrect] (Burst %1d) : ", req_num, burst_cur);
                     $write("rdata [0x%016h] | answer : [0x%016h] | rlast [%b]\n", data, answer, last);
-					@(posedge clk);
-					$finish;
+                    @(posedge clk);
+                    $finish;
                 end
                 else begin 
                     $write("<< %5dth request [ Correct ] (Burst %1d) : ", req_num, burst_cur);
@@ -297,7 +297,7 @@ module CC_TOP_TB ();
         int gen_repeat_cnt    = 80;
         int access_repeat_cnt = 800;
         test_init();
-		mem_fill();
+        mem_fill();
         trans_init(gen_repeat_cnt, access_repeat_cnt);
         fork
             drive_ar();
@@ -306,6 +306,5 @@ module CC_TOP_TB ();
         $display("Pass the test!");
         $finish;
     end
-
 
 endmodule

@@ -4,7 +4,7 @@ module CC_DATA_FILL_UNIT
 (
     input   wire            clk,
     input   wire            rst_n,
-	
+    
     // AMBA AXI interface between MEM and CC (R channel)
     input   wire    [63:0]  mem_rdata_i,
     input   wire            mem_rlast_i,

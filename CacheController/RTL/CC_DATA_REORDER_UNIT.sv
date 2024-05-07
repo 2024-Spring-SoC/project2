@@ -4,7 +4,7 @@ module CC_DATA_REORDER_UNIT
 (
     input   wire            clk,
     input   wire            rst_n,
-	
+
     // AMBA AXI interface between MEM and CC (R channel)
     input   wire    [63:0]  mem_rdata_i,
     input   wire            mem_rlast_i,
@@ -21,7 +21,7 @@ module CC_DATA_REORDER_UNIT
     input   wire            hit_data_fifo_wren_i,
     input   wire    [517:0] hit_data_fifo_wdata_i,
 
-	// AMBA AXI interface between INCT and CC (R channel)
+    // AMBA AXI interface between INCT and CC (R channel)
     output  wire    [63:0]  inct_rdata_o,
     output  wire            inct_rlast_o,
     output  wire            inct_rvalid_o,
