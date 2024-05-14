@@ -1,4 +1,4 @@
-`define     IP_VER          12'h000
+`define     IP_VER_ADDR     12'h000
 
 `define     TIMEOUT_DELAY   500000
 
@@ -175,7 +175,7 @@ module CC_TOP_TB ();
         @(posedge rst_n); 
         repeat (10) @(posedge clk);
 
-        apb_if.read(`IP_VER, data);
+        apb_if.read(`IP_VER_ADDR, data);
         $display("---------------------------------------------------");
         $display("IP version: %x", data);
         $display("---------------------------------------------------");
