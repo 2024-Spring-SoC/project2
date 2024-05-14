@@ -1,4 +1,4 @@
-`define     IP_VER          32'h0001_2024
+`define     IP_VER          12'h000
 
 `define     TIMEOUT_DELAY   500000
 
